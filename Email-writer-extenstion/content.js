@@ -5,8 +5,9 @@ function createAIButton() {
     button.className = 'T-I J-J5-Ji aoO v7 T-I-atl L3';
     button.style.marginRight = '8px';
     button.innerHTML = 'AI Reply';
-    button.setAttribute('role','button');
-    button.setAttribute('data-tooltip','Generate AI Reply');
+    button.setAttribute('role', 'button');
+    button.setAttribute('data-tooltip', 'Generate AI Reply');
+    button.classList.add('ai-reply-button');
     return button;
 }
 
@@ -54,12 +55,11 @@ function injectButton() {
 
     console.log("Toolbar found, creating AI button");
     const button = createAIButton();
-    button.classList.add('ai-reply-button');
 
     button.addEventListener('click', async () => {
         try {
             button.innerHTML = 'Generating...';
-            button.disabled = true;
+            button.style.pointerEvents = "none"; // simulate disabled for div
 
             const emailContent = getEmailContent();
             const response = await fetch('http://localhost:8080/api/email/generate', {
@@ -91,7 +91,7 @@ function injectButton() {
             alert('Failed to generate reply');
         } finally {
             button.innerHTML = 'AI Reply';
-            button.disabled = false;
+            button.style.pointerEvents = "auto"; // re-enable
         }
     });
 
@@ -99,11 +99,12 @@ function injectButton() {
 }
 
 const observer = new MutationObserver((mutations) => {
-    for(const mutation of mutations) {
+    for (const mutation of mutations) {
         const addedNodes = Array.from(mutation.addedNodes);
         const hasComposeElements = addedNodes.some(node =>
-            node.nodeType === Node.ELEMENT_NODE && 
-            (node.matches('.aDh, .btC, [role="dialog"]') || node.querySelector('.aDh, .btC, [role="dialog"]'))
+            node.nodeType === Node.ELEMENT_NODE &&
+            (node.matches('.aDh, .btC, [role="dialog"]') ||
+            (node.querySelector && node.querySelector('.aDh, .btC, [role="dialog"]')))
         );
 
         if (hasComposeElements) {
